@@ -1,0 +1,1 @@
+AND FIND_IN_SET(t.PathCode, p_PathCodes) > 0

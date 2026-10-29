@@ -1,0 +1,1 @@
+FORMAT(sum(t.Formula6),0) Paziraee,

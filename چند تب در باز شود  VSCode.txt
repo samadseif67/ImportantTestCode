@@ -1,0 +1,14 @@
+
+فعال سازی چند تب در vscode
+
+File → Preferences → Settings  
+بروید و در قسمت جستجو بنویسید:
+
+
+Workbench › Editor › Enable Preview
+
+
+
+همچنین این گزینه را هم خاموش کنید
+Workbench › Editor: Enable Preview
+Workbench › Editor: Enable Preview From Quick Open

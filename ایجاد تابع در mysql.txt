@@ -1,0 +1,13 @@
+CREATE  FUNCTION `fx_GetByCode`(StationCode INT) RETURNS varchar(50) CHARSET cp1256
+    READS SQL DATA
+BEGIN
+    DECLARE StationName VARCHAR(50);
+
+    SELECT s.Name
+    INTO StationName
+    FROM station s
+    WHERE s.Code = StationCode
+    LIMIT 1;
+
+    RETURN StationName;
+END

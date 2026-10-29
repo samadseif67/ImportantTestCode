@@ -1,0 +1,1 @@
+{Sum(DataSource.Formula6).ToString("#,##0")}

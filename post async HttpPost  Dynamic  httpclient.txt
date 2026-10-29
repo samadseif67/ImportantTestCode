@@ -1,0 +1,180 @@
+        private async Task<T> PostAsync<T>(string requestUrl, object obj, string token = "")
+        {
+            try
+            { 
+                using (var _client = new HttpClient())
+                {
+                    var jsonData = JsonConvert.SerializeObject(obj);                    
+                    using (var content = new StringContent(jsonData, Encoding.UTF8, "application/json"))
+                    {                       
+                        using (var request = new HttpRequestMessage(HttpMethod.Post, requestUrl))
+                        {
+                            request.Content = content;
+                            if (!string.IsNullOrWhiteSpace(token))
+                            {
+                                request.Headers.Authorization =
+                                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                            }
+                          
+                            using (var result = await _client.SendAsync(request).ConfigureAwait(false))
+                            {
+                                var responseJson = await result.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                                Console.WriteLine($"Status: {result.StatusCode}");
+                                Console.WriteLine($"Response: {responseJson}");
+
+                                if (!result.IsSuccessStatusCode)
+                                {
+                                    throw new Exception($"HTTP {(int)result.StatusCode} - {responseJson}");
+                                }
+
+                                var response = JsonConvert.DeserializeObject<T>(responseJson);
+                                return response;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in PostAsync: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                throw;
+            }
+        }
+
+
+-- --------------------------------------------------------------------------------------------------------------------------
+  private async Task<T> PostAsync<T>(string requestUrl, object obj, string token = "", List<KeyValueItem> lstHeaders = null, string username = "", string password = "")
+  {
+      try
+      {
+          ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+          using (var _client = new HttpClient())
+          {
+              var jsonData = JsonConvert.SerializeObject(obj);
+
+              using (var content = new StringContent(jsonData, Encoding.UTF8, "application/json"))
+              {
+                  using (var request = new HttpRequestMessage(HttpMethod.Post, requestUrl))
+                  {
+
+                      if (lstHeaders != null)
+                      {
+                          foreach (var item in lstHeaders)
+                          {
+                              request.Headers.TryAddWithoutValidation(item.Key, item.Value);
+                          }
+                      }
+
+                      if (!string.IsNullOrWhiteSpace(token))
+                      {
+
+                          request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                      }
+                      else if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
+                      {
+
+                          string credentials = $"{username}:{password}";
+                          string base64Credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
+                          request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64Credentials);
+                      }
+
+
+                      request.Content = content;
+                      using (var result = await _client.SendAsync(request).ConfigureAwait(false))
+                      {
+                          var responseJson = await result.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                          Console.WriteLine($"Status: {result.StatusCode}");
+                          Console.WriteLine($"Response: {responseJson}");
+                          if (!result.IsSuccessStatusCode)
+                          {
+                              throw new Exception($"HTTP {(int)result.StatusCode} - {responseJson}");
+                          }
+
+                          var response = JsonConvert.DeserializeObject<T>(responseJson);
+                          return response;
+                      }
+                  }
+              }
+          }
+      }
+      catch (Exception ex)
+      {
+          Console.WriteLine($"Error in PostAsync: {ex.Message}");
+          Console.WriteLine($"StackTrace: {ex.StackTrace}");
+          throw;
+      }
+  }
+
+-----------------------------------------------------------------------------------------------------------------------------------
+Not Async
+
+  private T Post<T>(string requestUrl, object obj, string token = "", List<KeyValueItem> lstHeaders = null, string username = "", string password = "")
+  {
+      try
+      {
+          ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+          using (var _client = new HttpClient())
+          {
+              _client.Timeout = new TimeSpan(0, 15, 0);
+              var jsonData = JsonConvert.SerializeObject(obj);
+
+              using (var content = new StringContent(jsonData, Encoding.UTF8, "application/json"))
+              {
+                  using (var request = new HttpRequestMessage(HttpMethod.Post, requestUrl))
+                  {
+
+                      if (lstHeaders != null)
+                      {
+                          foreach (var item in lstHeaders)
+                          {
+                              request.Headers.TryAddWithoutValidation(item.Key, item.Value);
+                          }
+                      }
+
+                      if (!string.IsNullOrWhiteSpace(token))
+                      {
+
+                          request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                      }
+                      else if (!string.IsNullOrWhiteSpace(username) &&
+                               !string.IsNullOrWhiteSpace(password))
+                      {
+
+                          string credentials = $"{username}:{password}";
+                          string base64Credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
+                          request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64Credentials);
+                      }
+
+
+                      request.Content = content;
+                      using (var result = _client.SendAsync(request).GetAwaiter().GetResult())
+                      {
+                          var responseJson = result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                          Console.WriteLine($"Status: {result.StatusCode}");
+                          Console.WriteLine($"Response: {responseJson}");
+                          if (!result.IsSuccessStatusCode)
+                          {
+                              throw new Exception($"HTTP {(int)result.StatusCode} - {responseJson}");
+                          }
+
+                          var response = JsonConvert.DeserializeObject<T>(responseJson);
+                          return response;
+                      }
+                  }
+              }
+          }
+      }
+      catch (Exception ex)
+      {
+          Console.WriteLine($"Error in PostAsync: {ex.Message}");
+          Console.WriteLine($"StackTrace: {ex.StackTrace}");
+          throw;
+      }
+  }
+
+----------------------------------------------------------------------------------------------------------------------------
+

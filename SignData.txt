@@ -1,0 +1,93 @@
+ #region SignData_DotNet4
+
+ private string SignData_DotNet8(string data)
+ {
+
+     //string privateKeyXml = GetPrivateKeyXml();
+     //var xml = XElement.Parse(privateKeyXml);
+
+     //using RSA rsa = RSA.Create();
+
+     //var parameters = new RSAParameters
+     //{
+     //    Modulus = Convert.FromBase64String(xml.Element("Modulus")!.Value),
+     //    Exponent = Convert.FromBase64String(xml.Element("Exponent")!.Value),
+     //    P = Convert.FromBase64String(xml.Element("P")!.Value),
+     //    Q = Convert.FromBase64String(xml.Element("Q")!.Value),
+     //    DP = Convert.FromBase64String(xml.Element("DP")!.Value),
+     //    DQ = Convert.FromBase64String(xml.Element("DQ")!.Value),
+     //    InverseQ = Convert.FromBase64String(xml.Element("InverseQ")!.Value),
+     //    D = Convert.FromBase64String(xml.Element("D")!.Value)
+     //};
+
+     //rsa.ImportParameters(parameters);
+
+     //byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+
+     //byte[] signature = rsa.SignData(
+     //    dataBytes,
+     //    HashAlgorithmName.SHA512,
+     //    RSASignaturePadding.Pkcs1);
+
+     //return Convert.ToBase64String(signature);
+     return "";
+
+ }
+
+ private string SignDataDotNet4(string data)
+ {
+     string privateKeyXml = GetPrivateKeyXml();
+     if (string.IsNullOrEmpty(data))
+         throw new ArgumentNullException("data");
+
+     if (string.IsNullOrEmpty(privateKeyXml))
+         throw new ArgumentNullException("privateKeyXml");
+
+     XElement xml = XElement.Parse(privateKeyXml);
+
+     RSAParameters parameters = new RSAParameters
+     {
+         Modulus = GetValue(xml, "Modulus"),
+         Exponent = GetValue(xml, "Exponent"),
+         P = GetValue(xml, "P"),
+         Q = GetValue(xml, "Q"),
+         DP = GetValue(xml, "DP"),
+         DQ = GetValue(xml, "DQ"),
+         InverseQ = GetValue(xml, "InverseQ"),
+         D = GetValue(xml, "D")
+     };
+
+     using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
+     {
+         rsa.ImportParameters(parameters);
+
+         byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+
+         byte[] signature = rsa.SignData(
+             dataBytes,
+             CryptoConfig.MapNameToOID("SHA512")
+         );
+
+         return Convert.ToBase64String(signature);
+     }
+ }
+
+ private byte[] GetValue(XElement xml, string elementName)
+ {
+     XElement element = xml.Element(elementName);
+
+     if (element == null)
+         throw new Exception(
+             "Element '" + elementName + "' در Private Key پیدا نشد."
+         );
+
+     if (string.IsNullOrWhiteSpace(element.Value))
+         throw new Exception(
+             "Element '" + elementName + "' خالی است."
+         );
+
+     return Convert.FromBase64String(element.Value);
+ }
+
+
+ #endregion
